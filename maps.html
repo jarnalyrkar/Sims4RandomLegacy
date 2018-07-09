@@ -1,0 +1,20 @@
+<!doctype php>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+  </head>
+  <body>
+  <script>
+    var map1 = [{"id":"1","career":"Entertainer (Musician)","description":"No additional money-making opportunities. ","conventional":"1","xp":"","active":"1"},
+                {"id":"2","career":"Entertainer (Comedian)","description":"May perform comedy in space. ","conventional":"1","xp":"","active":"0"}];
+
+
+    for (var i = map1.length-1; i >= 0; i--) {
+      if (map1[i]['active'] == 1) {
+        console.log(map1[i]['career'] + " is active!")
+      }
+    }
+
+  </script>
+</body>
+</html>
