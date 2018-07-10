@@ -1,65 +1,4 @@
-<?php
-  # Open connection to mysql database
-
-  # Production:
-  # $mysqli = new mysqli("sql303.byetcluster.com", "epiz_22356063", "rtsyk8jb", "epiz_22356093_simslegacy");
-
-  # Development:
-  $mysqli = new mysqli("localhost", "root", "", "simslegacy");
-
-  # Get all marital status
-  $marital_status_arr = array();
-  $marital_status = $mysqli->query("SELECT * FROM maritalstatus");
-  while($row = mysqli_fetch_array($marital_status, MYSQLI_ASSOC)) {
-    $marital_status_arr[] = $row;
-  }
-
-  # Get all conventional careers
-  $conventional_arr = array();
-  $conventionals = $mysqli->query("SELECT * FROM careers WHERE conventional = true");
-  while($row = mysqli_fetch_array($conventionals, MYSQLI_ASSOC)) {
-    $conventional_arr[] = $row;
-  }
-
-  # Get all unconventional careers
-  $unconventional_arr = array();
-  $unconventionals = $mysqli->query("SELECT * FROM careers WHERE conventional = false");
-  while($row = mysqli_fetch_array($unconventionals, MYSQLI_ASSOC)) {
-    $unconventional_arr[] = $row;
-  }
-
-  # Get all generation goals:
-  $gen_goals_arr = array();
-  $gengoals = $mysqli->query("SELECT * FROM gengoals");
-  while($row = mysqli_fetch_array($gengoals, MYSQLI_ASSOC)) {
-    $gen_goals_arr[] = $row;
-  }
-
-  # Get all midlifecrises:
-  $midlifecrises_arr = array();
-  $midlifecrises = $mysqli->query("SELECT * FROM midlifecrisis");
-  while($row = mysqli_fetch_array($midlifecrises, MYSQLI_ASSOC)) {
-    $midlifecrises_arr[] = $row;
-  }
-
-  # Get all miscellaneous fun:
-  $misc_arr = array();
-  $misc = $mysqli->query("SELECT * FROM misc");
-  while($row = mysqli_fetch_array($misc, MYSQLI_ASSOC)) {
-    $misc_arr[] = $row;
-  }
-
-  # Get all colors:
-  $colors_arr = array();
-  $colors = $mysqli->query("SELECT * FROM colors");
-  while($row = mysqli_fetch_array($colors, MYSQLI_ASSOC)) {
-    $colors_arr[] = $row;
-  }
-
-  # Close connection to the database
-  mysqli_close($mysqli);
-?>
-
+<?php include "server_connection.php" ?>
 <!doctype php>
 <html lang="en">
   <head>
@@ -167,11 +106,8 @@
         </table>
         </div>
 
-        <!--  -->
-
         <div><h4>Conventional Careers:</h4>
-          <div id="rowStuff" class="row">
-            <div id="doStuff"></div>
+          <div id="conventional_container" class="form-row">
           </div>
         </div>
     </div>
@@ -195,36 +131,9 @@
     var unconventionals = JSON.parse('<?php echo json_encode($unconventional_arr, JSON_HEX_APOS); ?>');
 
     document.addEventListener ("DOMContentLoaded", function() {
-      for (var i = 0; i < conventionals.length; i++) {
-        var element = document.createElement("div");
-        var att = document.createAttribute("class");
-        att.value = "col";
-        element.setAttributeNode(att);
-
-        // Add a row each 4 columns
-        if (i % 4) {
-          var row = document.createElement("div");
-          var rowAtt = document.createAttribute("class");
-          rowAtt.value = "row";
-
-          document.getElementById("doStuff").appendChild(row);
-        }
-
-        element.innerHTML = "<input type=\"checkbox\" checked>" + conventionals[i]['career'];
-
-        document.getElementById("doStuff").appendChild((element));
-      }
-
+      populateCheckboxes();
     });
-    function listenToCheckbox(id, model, index) {
-      var checkbox = document.querySelector("input[name=checkbox]");
 
-      checkbox.addEventListener( 'change', function() {
-          if(!this.checked) {
-            model[index]['active'] = 0;
-          }
-});
-    }
     function getMaritalStatus() {
         var marital_status = JSON.parse('<?php echo json_encode($marital_status_arr, JSON_HEX_APOS); ?>');
         var num = randomBetween(1, 25);
@@ -290,7 +199,6 @@
         } else {
             document.getElementById("secondary_career_row").style.display = "none";
         }
-
         document.getElementById("marital_title").innerHTML = marital_title;
         document.getElementById("marital_description").innerHTML = marital_description;
       }
@@ -300,26 +208,21 @@
       }
 
     function getPrimaryCareer() {
-
-      // activate(model, num);
-      // deactivate(model, num);
-      conventionals[0]['active'] = 0;
-
       var filter = [];
       var j = 0;
-      for (var i = conventionals.length-1; i >= 0; i--) {
+      for (var i = 0; i < conventionals.length-1; i++) {
         if (conventionals[i]['active'] == 0) {
           console.log(conventionals[i]['career'] + " is not active.")
         } else {
             filter[j] = conventionals[i];
-            console.log(filter[j]['career']);
             j++;
         }
       }
 
+      console.log(conventionals);
       conventionals = filter;
 
-      var careerType = randomBetween(0, 10); // Dice roll
+      var careerType = randomBetween(0, 10);
       var randConNum = randomBetween(0, conventionals.length-1);
       var randUnconNum = randomBetween(0, unconventionals.length-1);
 
@@ -347,7 +250,6 @@
           lastJob = randConNum;
         }
       }
-
       document.getElementById("primary_career_title").innerHTML = career_title;
       document.getElementById("primary_career_description").innerHTML = career_description;
     }
@@ -495,8 +397,63 @@
       return arr;
     }
 
-    </script>
+    function listenToCheckbox(id, model, index) {
+      var checkboxes = document.querySelectorAll('input[type="checkbox"]'),
+      checkboxArray = Array.from(checkboxes);
 
+      checkboxArray.forEach(function(checkbox) {
+        checkbox.addEventListener('change', confirmCheck);
+      });
+    }
+
+    function confirmCheck() {
+      if (!this.checked) {
+        alert('checked');
+      }
+    }
+
+    function populateCheckboxes() {
+      var myDiv = document.getElementById("conventional_container");
+
+      for (var i = 0; i < conventionals.length; i++) {
+          var checkBox = document.createElement("input");
+          var label = document.createElement("label");
+          checkBox.type = "checkbox";
+          label.class = "col-sm-";
+          if (i % 4) {
+            label.class = "row";
+          }
+          checkBox.value = conventionals[i]['career'];
+          myDiv.appendChild(checkBox);
+          myDiv.appendChild(label);
+          label.appendChild(document.createTextNode(conventionals[i]['career']));
+        }
+
+        // OLD VERSION
+        // for (var i = 0; i < conventionals.length; i++) {
+        //   var element = document.createElement("div");
+        //   var att = document.createAttribute("class");
+        //   att.value = "col";
+        //   element.setAttributeNode(att);
+        //
+        //   // Add a row each 4 columns
+        //   if (i % 4) {
+        //     var row = document.createElement("div");
+        //     var rowAtt = document.createAttribute("class");
+        //     rowAtt.value = "filterDiv" + " " + "conventionals"; // conventional = placeholder for model
+        //
+        //     document.getElementById("conventional_container").appendChild(row);
+        //   }
+        //
+        //   element.innerHTML = "<input type=\"checkbox\" checked>" + conventionals[i]['career'];
+        //
+        //   document.getElementById("conventional_container").appendChild((element));
+        // }
+
+
+    }
+
+    </script>
     <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>

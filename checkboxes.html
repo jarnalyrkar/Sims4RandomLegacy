@@ -1,0 +1,39 @@
+<!-- Will not be included in the final version -->
+<!-- This is just an exercise to understand a concept -->
+
+<!doctype php>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+  </head>
+  <body>
+
+    <input type="checkbox" id="first" checked><label>First</label>
+    <input type="checkbox" id="second" checked><label>Second</label>
+    <input type="checkbox" id="third" checked><label>Third</label>
+
+  <script>
+  var checkboxes = document.querySelectorAll('input[type=checkbox]'),
+    checkboxArray = Array.from( checkboxes );
+    var checkedArr = checkboxArray;
+
+  function confirmCheck() {
+    if (this.checked && !checkedArr.includes(this)) {
+      checkedArr.push(this);
+    } else if (checkedArr.includes(this)) {
+      var index = checkedArr.indexOf(this);
+      if (index > -1){
+        checkedArr.splice(index, 1);
+      }
+    }
+
+    console.log(checkedArr);
+  }
+
+  checkboxArray.forEach(function(checkbox) {
+    checkbox.addEventListener('change', confirmCheck);
+  });
+
+  </script>
+</body>
+</html>
